@@ -23,6 +23,8 @@ def call(method, path, *, body=None, token=None, key=None, raw=None):
     if body is not None:
         data = json.dumps(body).encode()
         headers["Content-Type"] = "application/json"
+    elif raw is not None:
+        headers["Content-Type"] = "application/json"
     if token:
         headers["Authorization"] = f"Bearer {token}"
     if key is not None:
@@ -173,5 +175,6 @@ def test_import_replaces_state_preserving_create_receipt_and_invalid_import_is_a
                  400, "malformed_request")
     current = call("GET", "/reservations", token=login["token"])
     assert current[0] == 200 and current[1]["reservations"] == [original[1]]
+
 
 
