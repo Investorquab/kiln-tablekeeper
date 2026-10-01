@@ -128,12 +128,12 @@ def test_failed_batch_rolls_back_and_keeps_key_reusable(world):
     assert [get_reservation(world, ref)[1] for ref in refs] == before
 
     retried = call("POST", "/reservation-moves", body={"moves": [
-        {"reference": refs[0], "table_id": "t_1"},
+        {"reference": refs[0], "table_id": "t_3"},
         {"reference": refs[1]},
     ]}, token=world["token"], key=KEY)
     assert retried[0] == 201, retried[1]
     after = [get_reservation(world, ref)[1] for ref in refs]
-    assert after[0]["table_id"] == "t_1"
+    assert after[0]["table_id"] == "t_3"
     assert after[1] == before[1]
     assert [r["reference"] for r in retried[1]["reservations"]] == refs
 
@@ -175,6 +175,4 @@ def test_import_replaces_state_preserving_create_receipt_and_invalid_import_is_a
                  400, "malformed_request")
     current = call("GET", "/reservations", token=login["token"])
     assert current[0] == 200 and current[1]["reservations"] == [original[1]]
-
-
 
