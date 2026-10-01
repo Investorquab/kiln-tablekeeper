@@ -1,5 +1,5 @@
-Harness: PLACEHOLDER
-Model: PLACEHOLDER
+Harness: Codex
+Model: GPT-6
 
 # Implementer mandate
 
