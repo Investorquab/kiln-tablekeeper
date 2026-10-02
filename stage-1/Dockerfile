@@ -1,2 +1,11 @@
-# Placeholder scaffold for the official BAND Stage 1 output.
-# The final Dockerfile must be produced by the BAND implementation run.
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY source/main.py /app/main.py
+
+ENV PORT=8080
+
+EXPOSE 8080
+
+CMD ["python3", "/app/main.py"]

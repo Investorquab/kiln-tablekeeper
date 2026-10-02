@@ -1,3 +1,21 @@
-# Stage 1 Run Instructions
+# Tablekeeper Stage 1
 
-This file will be replaced by the BAND-produced Stage 1 implementation with the exact clean-environment build and run commands, required PORT behavior, and service contract.
+## Build
+
+    docker build -t tablekeeper-stage1 ./stage-1
+
+## Run
+
+    docker run --rm -p 8080:8080 tablekeeper-stage1
+
+The service listens on 0.0.0.0:${PORT} and defaults to port 8080.
+
+## Health check
+
+    curl http://127.0.0.1:8080/health
+
+Expected:
+
+    {"status":"ok"}
+
+The service is self-contained in the image and requires no outbound network access at runtime.

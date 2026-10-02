@@ -332,6 +332,19 @@ class Handler(BaseHTTPRequestHandler):
             STATE["reservations"][ref]=up
         json_response(self,200,reservation_public(up))
 
+    def import_state(self):
+        try:
+            snapshot = read_json(self)
+        except ValueError:
+            return error(self, 400, "malformed_request")
+
+        try:
+            import_snapshot(snapshot)
+        except Exception:
+            return error(self, 422, "validation_failed")
+
+        no_content(self)
+
     def moves(self,uid):
         b=read_json(self)
         if not isinstance(b,dict):return error(self,422,"validation_failed")
