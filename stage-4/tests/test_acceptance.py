@@ -601,6 +601,58 @@ def test_existing_stage2_browser_lookup_and_grid_show_applied_seating_at_375px(
     assert page.text_content(sel("reservation-tables")).strip() == "3"
     assert page.text_content(sel("reservation-status")).strip() == "confirmed"
 
+
+def test_booking_confirmation_refreshes_after_concurrent_seating_replan(reset, api, page):
+    reset(fixture(restaurants=[restaurant(slot_minutes=60, duration=60, cutoff=0)]))
+    ada = api().authenticate(ADA["email"], ADA["password"])
+    date = booking_date()
+    assert_status(publish(ada, date, slot_minutes=60, reservation_duration_minutes=60,
+                          cancellation_cutoff_minutes=0), 201)
+
+    sel = lambda name: f"[data-testid='{name}']"
+    page.set_viewport_size({"width": 375, "height": 812})
+    page.goto("/login")
+    page.fill(sel("login-email"), ADA["email"])
+    page.fill(sel("login-password"), ADA["password"])
+    page.click(sel("login-submit"))
+    page.wait_for_selector(sel("current-user"))
+    page.goto("/")
+    page.select_option(sel("restaurant-select"), "r_anker")
+    page.fill(sel("date-input"), date)
+    page.fill(sel("party-size-input"), "4")
+    page.click(sel("search-button"))
+    page.wait_for_selector(sel("slot-t_2-19:00"))
+    page.click(sel("slot-t_2-19:00"))
+    page.fill(sel("booking-party-size"), "4")
+
+    def replan_before_refresh(route):
+        if route.request.method != "GET":
+            route.continue_()
+            return
+        reference = route.request.url.split("?", 1)[0].rsplit("/", 1)[-1]
+        preview = assert_status(replan(ada, date, "t_2", "19:00", "20:00"), 201).json()
+        assert preview["assignments"] == [{
+            "reference": reference, "table_ids": ["t_3"], "changed": True}]
+        assert_status(apply(ada, preview["plan_id"]), 201)
+        route.continue_()
+
+    page.route("**/reservations/*", replan_before_refresh)
+    booking_keys = []
+    page.on("request", lambda request: booking_keys.append(
+        request.headers.get("idempotency-key"))
+        if request.method == "POST" and request.url.endswith("/reservations") else None)
+    page.click(sel("booking-submit"))
+    page.wait_for_selector(sel("confirmation-tables"))
+    assert page.text_content(sel("confirmation-tables")).strip() == "Table 3"
+    assert len(booking_keys) == 1 and booking_keys[0]
+
+    # The POST receipt remains the original booking result; only the display refreshes.
+    original = assert_status(ada.post("/reservations", json=booking_body(
+        date, table_id="t_2", party=4), idempotency_key=booking_keys[0]), 200).json()
+    assert original["table_ids"] == ["t_2"]
+    assert ada.get(f"/reservations/{original['reference']}").json()["table_ids"] == ["t_3"]
+
+
 def test_planning_may_reject_inputs_over_table_or_pair_bounds_without_5xx(reset, api):
     date = booking_date()
     seven_tables = [{"id": f"t_{i}", "label": str(i), "capacity": 2} for i in range(1, 8)]
