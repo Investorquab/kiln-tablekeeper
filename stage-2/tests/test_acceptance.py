@@ -97,6 +97,11 @@ def test_stage1_export_preserves_booking_and_create_receipt(world, previous_api,
     upgraded = api(token=legacy.token)
     assert upgraded.post("/_test/import", json=snapshot.json(), token=None).status_code == 204
 
+    logged_in = api().authenticate(ADA["email"], ADA["password"])
+    restored_for_account = logged_in.get(f"/reservations/{created.json()['reference']}")
+    assert restored_for_account.status_code == 200
+    assert restored_for_account.json()["reference"] == created.json()["reference"]
+
     replay = upgraded.post("/reservations", json=body, idempotency_key=key)
     assert replay.status_code == 200 and replay.json() == created.json()
     restored = upgraded.get(f"/reservations/{created.json()['reference']}")

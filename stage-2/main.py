@@ -530,11 +530,17 @@ class Handler(BaseHTTPRequestHandler):
                          "state": copy.deepcopy(STATE)}
         if method == "POST" and route == "/_test/import":
             obj_body(body)
-            valid(body.get("track") == "tablekeeper" and type(body.get("format_version")) is int
-                  and body.get("format_version") == 1)
-            imported = body.get("state")
+            legacy_export = {"users", "restaurants", "reservations", "tokens", "idempotency"}
+            if set(body) == legacy_export:
+                imported = body
+            else:
+                valid(body.get("track") == "tablekeeper" and
+                      type(body.get("format_version")) is int and
+                      body.get("format_version") == 1)
+                imported = body.get("state")
             if not isinstance(imported, dict):
                 fail(422, "validation_failed")
+            imported = adapt_legacy_import_state(imported)
             validate_import_state(imported)
             STATE = copy.deepcopy(imported)
             return 204, None
@@ -797,6 +803,95 @@ def make_reference():
         ref = "".join(secrets.choice(alphabet) for _ in range(8))
         if ref not in STATE["reservations"]:
             return ref
+
+
+def adapt_legacy_import_state(state):
+    """Translate the Stage 1 export shape before strict Stage 2 validation."""
+    legacy_keys = {"users", "restaurants", "reservations", "tokens", "idempotency"}
+    if set(state) != legacy_keys:
+        return state
+
+    users = state.get("users")
+    restaurants = state.get("restaurants")
+    reservations = state.get("reservations")
+    tokens = state.get("tokens")
+    idempotency = state.get("idempotency")
+    valid(all(isinstance(value, dict) for value in (users, restaurants, reservations, tokens)))
+    valid(isinstance(idempotency, list))
+
+    converted_users = {}
+    for uid, user in users.items():
+        valid(isinstance(uid, str) and isinstance(user, dict) and
+              user.get("id") == uid and isinstance(user.get("password"), str))
+        converted_users[uid] = {
+            "id": uid,
+            "email": user.get("email"),
+            "display_name": user.get("display_name"),
+            "password_hash": password_hash(user["password"]),
+        }
+
+    converted_restaurants = copy.deepcopy(restaurants)
+    for rid, restaurant in converted_restaurants.items():
+        valid(isinstance(restaurant, dict) and restaurant.get("id") == rid and
+              isinstance(restaurant.get("tables"), dict))
+        tables = restaurant["tables"]
+        valid(all(isinstance(table, dict) and table.get("id") == table_id
+                  for table_id, table in tables.items()))
+        restaurant["tables"] = list(tables.values())
+
+    converted_receipts = {}
+    for record in idempotency:
+        valid(isinstance(record, dict) and isinstance(record.get("scope"), list) and
+              len(record["scope"]) == 4)
+        uid, method, path, key = record["scope"]
+        response = record.get("response")
+        body_hash = record.get("body_hash")
+        valid(isinstance(uid, str) and uid in converted_users and method == "POST" and
+              path in ("/reservations", "/reservation-moves") and
+              isinstance(key, str) and 1 <= len(key) <= 255 and
+              record.get("status") == 201 and isinstance(response, dict) and
+              isinstance(body_hash, str) and re.fullmatch(r"[0-9a-f]{64}", body_hash))
+
+        request_body = None
+        if path == "/reservations":
+            if (response.get("user_id") == uid and
+                    all(field in response for field in
+                        ("restaurant_id", "table_id", "starts_at_local", "party_size"))):
+                request_body = {field: response[field] for field in
+                                ("restaurant_id", "table_id", "starts_at_local", "party_size")}
+        else:
+            moved = response.get("reservations")
+            if isinstance(moved, list) and moved and all(
+                    isinstance(item, dict) and item.get("user_id") == uid and
+                    all(field in item for field in
+                        ("reference", "table_id", "party_size", "starts_at_local"))
+                    for item in moved):
+                request_body = {"moves": [
+                    {field: item[field] for field in
+                     ("reference", "table_id", "party_size", "starts_at_local")}
+                    for item in moved
+                ]}
+
+        if request_body is not None:
+            candidate_hash = hashlib.sha256(json.dumps(
+                request_body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            if hmac.compare_digest(candidate_hash, body_hash):
+                receipt_key = uid + "\0" + key
+                valid(receipt_key not in converted_receipts)
+                converted_receipts[receipt_key] = {
+                    "method": method,
+                    "path": path,
+                    "body": request_body,
+                    "response": copy.deepcopy(response),
+                }
+
+    return {
+        "users": converted_users,
+        "restaurants": converted_restaurants,
+        "reservations": copy.deepcopy(reservations),
+        "tokens": copy.deepcopy(tokens),
+        "receipts": converted_receipts,
+    }
 
 
 def validate_import_state(state):
