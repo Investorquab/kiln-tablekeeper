@@ -69,6 +69,44 @@ def world(reset, api):
     )
 
 
+def test_invalid_import_state_is_rejected_without_replacing_current_state(world):
+    before = world.ada.get("/_test/export")
+    assert before.status_code == 200
+    malformed = {
+        "users": {}, "restaurants": {"r_bad": {"id": "r_bad"}},
+        "reservations": {}, "tokens": {}, "receipts": {},
+    }
+    rejected = world.ada.post("/_test/import", json={
+        "track": "tablekeeper", "format_version": 1, "state": malformed,
+    }, token=None)
+    assert_error(rejected, 422, "validation_failed")
+    after = world.ada.get("/_test/export")
+    assert after.status_code == 200 and after.json() == before.json()
+
+
+def test_stage1_export_preserves_booking_and_create_receipt(world, previous_api, api):
+    assert previous_api.post("/_test/reset", json=fixture(combinations=False)).status_code == 204
+    legacy = previous_api.authenticate(ADA["email"], ADA["password"])
+    body = booking_body(world.date, table_id="t_2", at="19:00", party=4)
+    key = new_key()
+    created = legacy.post("/reservations", json=body, idempotency_key=key)
+    assert created.status_code == 201, created.text
+
+    snapshot = legacy.get("/_test/export")
+    assert snapshot.status_code == 200
+    upgraded = api(token=legacy.token)
+    assert upgraded.post("/_test/import", json=snapshot.json(), token=None).status_code == 204
+
+    replay = upgraded.post("/reservations", json=body, idempotency_key=key)
+    assert replay.status_code == 200 and replay.json() == created.json()
+    restored = upgraded.get(f"/reservations/{created.json()['reference']}")
+    assert restored.status_code == 200
+    assert restored.json()["reference"] == created.json()["reference"]
+    assert restored.json()["reservation_id"] == created.json()["reservation_id"]
+    assert restored.json()["table_ids"] == ["t_2"]
+    assert restored.json()["table_id"] == "t_2"
+
+
 def slot(client, rid, date, party_size):
     response = client.get("/availability", params={
         "restaurant_id": rid, "date": date, "party_size": party_size,
