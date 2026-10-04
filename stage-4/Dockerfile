@@ -11,5 +11,6 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY main.py /app/main.py
+COPY assets /app/assets
 EXPOSE 8080
 CMD ["python", "/app/main.py"]

@@ -31,3 +31,16 @@ Start with `FACTORY.md`, then inspect the seat mandates and `room.json`. Each co
 ## Status
 
 This repository is being populated by the final autonomous BAND run. Only stages actually completed by the band will be submitted.
+
+## Tablekeeper visual assets
+
+Stage 4 bundles its restaurant photography, icons, illustrations, logo, and
+favicon in `stage-4/assets/`. The browser serves these local files from
+`/assets/`, so the experience works without CDN or runtime network dependencies.
+The welcome page is available at `/welcome`; `/` remains the real reservation
+application.
+
+Visual assets in this project were created specifically for Tablekeeper by the
+team using AI image generation and custom SVG artwork. No third-party stock
+image URLs or runtime external asset dependencies are used. The asset package
+includes provenance and placement notes under `stage-4/assets/docs/`.

@@ -1,0 +1,61 @@
+.brand img{display:block;width:188px;height:auto}
+.nav-welcome{order:0}
+.nav a.nav-welcome{color:var(--leaf);background:var(--leaf2)}
+.welcome-page{display:grid;gap:3.8rem}
+.welcome-hero{position:relative;display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);align-items:center;gap:clamp(1.5rem,5vw,4rem);min-height:440px;padding:clamp(1.4rem,4vw,3rem);overflow:hidden;border:1px solid #e2ded1;border-radius:28px;background:linear-gradient(135deg,#fffefa 12%,#f3f0e4 100%);box-shadow:var(--shadow)}
+.welcome-hero:before{position:absolute;inset:auto auto -120px -80px;width:300px;height:300px;border-radius:50%;background:rgba(213,226,211,.44);content:"";pointer-events:none}
+.welcome-copy{position:relative;z-index:1;max-width:510px}
+.welcome-copy h1{font:clamp(2.65rem,5.7vw,5rem)/.99 Georgia,serif;letter-spacing:-.045em;margin:.65rem 0 1rem}
+.welcome-copy p{max-width:470px;color:var(--muted);font-size:1.08rem}
+.welcome-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;margin-top:1.4rem}
+.welcome-actions a,.restaurant-action{display:inline-flex;min-height:48px;align-items:center;justify-content:center;gap:.55rem;border-radius:999px;padding:.7rem 1.1rem;font-weight:750;text-decoration:none}
+.welcome-primary,.restaurant-action{background:var(--leaf);color:#fff;box-shadow:0 6px 15px rgba(23,82,63,.15);transition:transform .18s ease,background .18s ease,box-shadow .18s ease}
+.welcome-primary:hover,.restaurant-action:hover{background:var(--leaf-dark);color:#fff;transform:translateY(-2px);box-shadow:0 10px 22px rgba(23,82,63,.2)}
+.welcome-secondary{color:var(--leaf);border:1px solid #cbd7cb;background:rgba(255,254,250,.72)}
+.welcome-secondary:hover{background:#fff}
+.welcome-hero-image{position:relative;min-height:330px;overflow:hidden;border-radius:22px;box-shadow:0 18px 40px rgba(35,59,50,.18)}
+.welcome-hero-image:after{position:absolute;inset:55% 0 0;background:linear-gradient(transparent,rgba(26,45,37,.28));content:"";pointer-events:none}
+.welcome-hero-image img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.welcome-hero-mark{position:absolute;z-index:1;right:1.1rem;bottom:1rem;width:116px;filter:drop-shadow(0 4px 16px rgba(0,0,0,.12))}
+.welcome-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem;margin-top:-1.8rem}
+.welcome-benefit{display:flex;align-items:center;gap:.8rem;min-height:76px;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:15px;background:rgba(255,254,250,.92);box-shadow:var(--shadow-soft);font-size:.91rem;font-weight:650}
+.welcome-benefit img,.restaurant-meta img{flex:0 0 auto;width:25px;height:25px}
+.visual-section{margin:0}
+.visual-section-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin:0 0 1rem}
+.visual-section-heading h2{margin:.35rem 0 0;font:clamp(1.65rem,3.5vw,2.25rem)/1.1 Georgia,serif;letter-spacing:-.025em}
+.visual-section-heading p{max-width:360px;margin:0;color:var(--muted);font-size:.95rem}
+.restaurant-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+.restaurant-card{min-width:0;overflow:hidden;border:1px solid #dfdfd5;border-radius:18px;background:var(--paper);box-shadow:var(--shadow-soft);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;animation:visual-arrive .35s ease both}
+.restaurant-card:hover{transform:translateY(-4px);border-color:#c6d4c7;box-shadow:var(--shadow)}
+.restaurant-card:focus-within{outline:3px solid rgba(187,107,24,.45);outline-offset:3px}
+.restaurant-photo{position:relative;display:block;width:100%;aspect-ratio:1.45/1;overflow:hidden;background:#e7e8dd}
+.restaurant-photo img{width:100%;height:100%;object-fit:cover;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.restaurant-card:hover .restaurant-photo img{transform:scale(1.045)}
+.restaurant-photo:after{position:absolute;inset:50% 0 0;background:linear-gradient(transparent,rgba(20,35,28,.24));content:""}
+.restaurant-card-body{display:grid;gap:.65rem;padding:1rem}
+.restaurant-category{color:var(--gold);font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.restaurant-card h3{margin:-.35rem 0 0;font:1.3rem/1.1 Georgia,serif;letter-spacing:-.015em}
+.restaurant-meta{display:flex;align-items:center;gap:.5rem;color:var(--muted);font-size:.79rem;overflow-wrap:anywhere}
+.restaurant-meta img{width:19px;height:19px}
+.restaurant-action{width:100%;min-height:43px;margin-top:.25rem;border:0;font-size:.88rem}
+.restaurant-action img{width:19px;height:19px;filter:brightness(0) invert(1)}
+.visual-empty{grid-column:1/-1;padding:1.2rem;border:1px dashed #bdc9bf;border-radius:14px;color:var(--muted);background:rgba(255,254,250,.7)}
+.visual-promise{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:1.15rem;padding:1.3rem 1.5rem;border:1px solid #d8dfd5;border-radius:18px;background:linear-gradient(105deg,#edf4ec,#fbf8ef)}
+.visual-promise>img{width:42px;height:42px}
+.visual-promise strong{display:block;font:1.2rem Georgia,serif}
+.visual-promise p{margin:.2rem 0 0;color:var(--muted);font-size:.9rem}
+.visual-promise-mark{width:112px;max-height:82px;object-fit:contain;opacity:.85}
+.confirmation{position:relative;overflow:hidden}
+.confirmation-art{position:absolute;top:1.3rem;right:1.5rem;width:92px;height:92px;object-fit:contain}
+.welcome-page .visual-section-heading{margin-bottom:1.15rem}
+.welcome-footer{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+.welcome-footer img{width:164px;height:auto}
+.field-note img{display:inline-block;width:17px;height:17px;margin-right:.35rem;vertical-align:-4px}
+.visual-icon-note{display:inline-flex;align-items:center;gap:.45rem;color:var(--muted);font-size:.8rem}
+.visual-icon-note img{width:18px;height:18px}
+.booking-summary:before{display:inline-block;width:21px;height:21px;margin-right:.35rem;background:url("/assets/icons/table.svg") center/contain no-repeat;content:"";vertical-align:-4px}
+@keyframes visual-arrive{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){.restaurant-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.welcome-hero{gap:1.4rem;min-height:380px}.welcome-hero-image{min-height:290px}}
+@media(max-width:680px){.welcome-page{gap:2.4rem}.welcome-hero{grid-template-columns:1fr;gap:1.25rem;min-height:0;padding:1.35rem;border-radius:21px}.welcome-copy h1{font-size:clamp(2.45rem,12vw,3.8rem)}.welcome-copy p{font-size:1rem}.welcome-hero-image{min-height:250px;max-height:330px}.welcome-benefits{grid-template-columns:1fr;margin-top:-1.2rem}.welcome-benefit{min-height:60px;padding:.75rem 1rem}.visual-section-heading{align-items:flex-start;flex-direction:column;gap:.45rem}.restaurant-cards{gap:.75rem}.restaurant-card-body{padding:.8rem}.restaurant-card h3{font-size:1.15rem}.visual-promise{grid-template-columns:auto 1fr;padding:1rem}.visual-promise-mark{display:none}.confirmation-art{top:1rem;right:1rem;width:68px;height:68px}.confirmation{padding-right:1rem}.welcome-footer{align-items:flex-start;flex-direction:column}}
+@media(max-width:420px){.brand img{width:165px}.nav-welcome{display:none!important}.welcome-hero{padding:1.15rem}.welcome-hero-image{min-height:215px}.welcome-actions{align-items:stretch;flex-direction:column}.welcome-actions a{width:100%}.restaurant-cards{grid-template-columns:1fr}.restaurant-photo{aspect-ratio:1.8/1}.restaurant-card-body{gap:.55rem;padding:1rem}.restaurant-card h3{font-size:1.3rem}.restaurant-meta{font-size:.82rem}.restaurant-action{min-height:46px}.confirmation-art{position:static;float:right;width:62px;height:62px;margin:-.1rem 0 .4rem .6rem}.welcome-benefit{font-size:.86rem}.visual-promise{gap:.8rem}}
+@media(prefers-reduced-motion:reduce){.restaurant-card,.restaurant-photo img,.welcome-primary,.restaurant-action{animation:none;transition:none}}

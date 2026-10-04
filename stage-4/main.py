@@ -6,7 +6,9 @@ import copy
 import hashlib
 import hmac
 import json
+import mimetypes
 import os
+from pathlib import Path
 import re
 import secrets
 import threading
@@ -21,13 +23,14 @@ LOCK = threading.RLock()
 STATE = {"users": {}, "restaurants": {}, "reservations": {}, "tokens": {}, "receipts": {},
          "policies": {}, "histories": {}, "series": {}, "restaurant_revisions": {},
          "closures": {}, "replans": {}}
+ASSET_DIR = Path(__file__).resolve().parent / "assets"
 WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 REF_RE = re.compile(r"^[A-Z0-9]{6,12}$")
 LOCAL_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$")
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
 APP_HTML = r'''<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/assets/brand/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/css/visual-upgrade.css">
 <title>Tablekeeper | A table worth gathering around</title>
 <style>
 :root{color-scheme:light;--ink:#233b32;--muted:#60736a;--leaf:#17523f;--leaf-dark:#103d2f;--leaf2:#e5efe8;--cream:#fbf7ef;--paper:#fffefa;--line:#d9dfd7;--gold:#a25d19;--red:#963f32;--shadow:0 16px 42px rgba(34,56,44,.09);--shadow-soft:0 7px 22px rgba(34,56,44,.06)}
@@ -72,7 +75,7 @@ async function start(){try{const {res,data}=await api('/restaurants');if(res.ok)
 async function getRestaurant(id){try{const {res,data}=await api('/restaurants/'+encodeURIComponent(id));if(res.ok)return data}catch{}return restaurants.find(r=>r.id===id)||null}
 start();
 })();
-</script></body></html>'''
+</script><script src="/assets/js/visual-upgrade.js"></script></body></html>'''
 
 
 class ApiError(Exception):
@@ -301,6 +304,34 @@ def build_fixture(fixture):
         append_history(new, reservation, "created", creation_changes(reservation),
                        at=reservation["created_at"])
     return new
+
+
+def seed_demo_restaurants():
+    global STATE
+    if any(STATE.values()):
+        return
+    opening_hours = [{"weekday": weekday, "opens": "17:00", "closes": "23:00"}
+                     for weekday in WEEKDAYS]
+    tables = [
+        {"id": "table_1", "label": "1", "capacity": 2},
+        {"id": "table_2", "label": "2", "capacity": 4},
+        {"id": "table_3", "label": "3", "capacity": 6},
+    ]
+    venues = (
+        ("demo-ember-oak", "Ember & Oak", "Europe/London"),
+        ("demo-green-fork", "The Green Fork", "Europe/Paris"),
+        ("demo-palm-plate", "Palm & Plate", "Africa/Lagos"),
+        ("demo-olive-room", "The Olive Room", "Europe/Athens"),
+    )
+    restaurants = [
+        {"id": rid, "name": name, "timezone": timezone_name,
+         "slot_minutes": 30, "reservation_duration_minutes": 90,
+         "cancellation_cutoff_minutes": 120, "opening_hours": opening_hours,
+         "tables": tables, "combinable": [["table_1", "table_2"],
+                                           ["table_2", "table_3"]]}
+        for rid, name, timezone_name in venues
+    ]
+    STATE = build_fixture({"restaurants": restaurants})
 
 
 def find_table(restaurant, table_id):
@@ -646,6 +677,26 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
+    def send_asset(self, route):
+        relative = route[len("/assets/"):]
+        root = ASSET_DIR.resolve()
+        asset = (root / relative).resolve()
+        try:
+            asset.relative_to(root)
+        except ValueError:
+            fail(404, "not_found")
+        if not relative or not asset.is_file():
+            fail(404, "not_found")
+        payload = asset.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", mimetypes.guess_type(str(asset))[0]
+                         or "application/octet-stream")
+        self.send_header("Content-Length", str(len(payload)))
+        self.send_header("Cache-Control", "public, max-age=3600")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(payload)
+
     def send_error_json(self, status, code):
         self.send_json(status, {"error": {"code": code, "message": code.replace("_", " ")}})
 
@@ -668,6 +719,9 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path)
         route = unquote(path.path)
         method = self.command
+        if method == "GET" and route.startswith("/assets/"):
+            self.send_asset(route)
+            return
         body = None
         if method in ("POST", "PATCH", "PUT"):
             body = self.read_json()
@@ -676,7 +730,8 @@ class Handler(BaseHTTPRequestHandler):
             public = (method == "GET" and (route in ("/restaurants", "/availability") or
                       route.startswith("/restaurants/")))
             auth_exempt = route in ("/health", "/_test/reset", "/_test/export", "/_test/import",
-                                    "/auth/signup", "/auth/login", "/", "/signup", "/login", "/lookup")
+                                    "/auth/signup", "/auth/login", "/", "/welcome", "/signup",
+                                    "/login", "/lookup")
             if method == "GET" and (re.fullmatch(r"/reservations/[^/]+/(?:history|decision)", route) or
                                      re.fullmatch(r"/series/[^/]+", route)):
                 auth_exempt = True
@@ -716,7 +771,7 @@ class Handler(BaseHTTPRequestHandler):
                 rkey = uid + "\0" + key
                 STATE["receipts"][rkey] = {"method": method, "path": route,
                                             "body": copy.deepcopy(body), "response": copy.deepcopy(result)}
-            if method == "GET" and route in ("/", "/signup", "/login", "/lookup"):
+            if method == "GET" and route in ("/", "/welcome", "/signup", "/login", "/lookup"):
                 self.send_html(status, result)
             else:
                 self.send_json(status, result)
@@ -742,7 +797,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def dispatch(self, method, route, query, body, uid):
         global STATE
-        if method == "GET" and route in ("/", "/signup", "/login", "/lookup"):
+        if method == "GET" and route in ("/", "/welcome", "/signup", "/login", "/lookup"):
             return 200, APP_HTML
         if method == "GET" and route == "/health":
             return 200, {"status": "ok"}
@@ -1770,6 +1825,7 @@ def validate_import_state(state):
 
 def main():
     port = int(os.environ.get("PORT", "8080"))
+    seed_demo_restaurants()
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
     server.daemon_threads = True
     server.serve_forever()
