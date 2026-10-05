@@ -18,7 +18,9 @@
 
 **Live application:** https://kiln-tablekeeper.vercel.app/
 
-**Demo video:** YouTube link will be added here.
+[![Tablekeeper Demo](https://img.youtube.com/vi/uPZeSH1m5MY/maxresdefault.jpg)](https://youtu.be/uPZeSH1m5MY)
+
+**Watch the full demo on YouTube:** https://youtu.be/uPZeSH1m5MY
 
 > The demo shows both sides of the project: the finished Tablekeeper product and the Kiln/BAND factory that produced and verified it.
 
