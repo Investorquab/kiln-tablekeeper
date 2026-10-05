@@ -1,165 +1,366 @@
 # Kiln — Tablekeeper
 
-Kiln is an autonomous software factory built with BAND Desktop. It plans work, coordinates coding-agent seats, implements a service, attacks the result, repairs failures, and independently verifies the output.
+<p align="center">
+  <strong>An autonomous software factory that plans, builds, attacks, repairs, and verifies software.</strong>
+</p>
 
-**Track:** Tablekeeper  
-**Factory:** Kiln  
-**Current shipped milestone:** Stage 4  
-**Core application baseline:** 2ad5f84a533ecf94c25735cc04b034bf2d00d326
+<p align="center">
+  <a href="https://kiln-tablekeeper.vercel.app/">Live Demo</a> ·
+  <a href="https://github.com/Investorquab/kiln-tablekeeper">Repository</a> ·
+  <a href="https://github.com/Investorquab/kiln">Kiln Factory</a>
+</p>
 
-## What Tablekeeper is
+> **WeAreDevelopers × BAND Dark Factory Hackathon**
+>
+> Tablekeeper is the product Kiln used to demonstrate an autonomous, evidence-driven software factory: multiple specialized agent seats collaborate through BAND to plan work, write acceptance tests, implement the service, investigate failures, review the result, and integrate a verified build.
 
-Tablekeeper is a restaurant reservation experience built around a real HTTP service.
+## 🎥 Demo
+
+**Live application:** https://kiln-tablekeeper.vercel.app/
+
+**Demo video:** YouTube link will be added here.
+
+> The demo shows both sides of the project: the finished Tablekeeper product and the Kiln/BAND factory that produced and verified it.
+
+---
+
+## Contents
+
+- [What is Kiln?](#what-is-kiln)
+- [What is Tablekeeper?](#what-is-tablekeeper)
+- [Why this matters](#why-this-matters)
+- [How the factory works](#how-the-factory-works)
+- [Factory seats](#factory-seats)
+- [Product flow](#product-flow)
+- [Validation](#validation)
+- [Repository structure](#repository-structure)
+- [Running Tablekeeper](#running-tablekeeper)
+- [Deployment](#deployment)
+- [Evidence](#evidence)
+- [Roadmap](#roadmap)
+- [License](#license)
+
+---
+
+## What is Kiln?
+
+**Kiln is a software factory, not just a coding agent.**
+
+The factory turns a product mandate into working software through a controlled sequence of specialized roles:
+
+**Plan → Test → Build → Attack → Repair → Review → Integrate → Verify**
+
+Each seat has a bounded responsibility and produces evidence that can be traced through the BAND room, repository history, acceptance work, and validation runs.
+
+The goal is simple:
+
+> **Software that can show how it was built, what was tested, what failed, what was repaired, and why the final result can be trusted.**
+
+---
+
+## What is Tablekeeper?
+
+Tablekeeper is an OpenTable-style restaurant reservation experience built around a real HTTP service.
 
 A diner can:
 
 1. Discover a restaurant.
 2. Choose a date and party size.
 3. Inspect available seating.
-4. Reserve a table.
-5. Receive a stable confirmation reference.
-6. Look up and manage a reservation.
+4. Select a table.
+5. Reserve the table.
+6. Receive a stable confirmation reference.
+7. Look up and manage the reservation.
 
-The product includes four seeded demo restaurants on normal startup:
+### Seeded restaurants
 
-- **Ember & Oak** — grill / steakhouse
-- **The Green Fork** — Italian / pizza
-- **Palm & Plate** — African / local / seafood
-- **The Olive Room** — Mediterranean / seafood / modern
+| Restaurant | Style |
+|---|---|
+| **Ember & Oak** | Grill / Steakhouse |
+| **The Green Fork** | Italian / Pizza |
+| **Palm & Plate** | African / Local / Seafood |
+| **The Olive Room** | Mediterranean / Seafood / Modern |
 
-## Demo flow
+---
 
-For a presentation, use this sequence:
+## Why this matters
 
-/welcome  
-→ choose Find a table  
-→ select a restaurant  
-→ choose date + party size  
-→ inspect live availability  
-→ select a table  
-→ reserve  
-→ show the confirmation reference  
-→ open Your booking  
-→ look up the reservation using the reference.
+Most AI coding workflows focus on **generating code**.
 
-The /welcome page is the public introduction. The real reservation application remains at /.
+Kiln focuses on the larger engineering loop:
 
-## Repository map
+- What should be built?
+- How do we prove the requirement works?
+- What happens when the implementation fails?
+- Can another agent independently attack the result?
+- Can failures be investigated and repaired?
+- Can the final build be validated outside the implementation loop?
 
-- FACTORY.md — how Kiln is organized and how work is divided between seats
-- mandates/ — generic mandates for the BAND seats
-- room.json — full BAND room export used to evidence the collaboration
-- stage-1/ — Tablekeeper Stage 1 service
-- stage-2/ — Stage 1 carried forward and extended
-- stage-3/ — Stage 2 carried forward and extended
-- stage-4/ — Stage 3 carried forward and extended
+BAND provides the collaborative agent-room infrastructure. Kiln provides the factory process and evidence model around it.
 
-Each completed stage contains its own Dockerfile, RUN.md, and service source.
+---
 
-## Factory flow
+## How the factory works
 
-Plan → Test → Build → Attack → Repair → Retest → Independently Verify
+The Tablekeeper factory is divided into specialized seats:
 
-Kiln separates planning, acceptance work, implementation, investigation, review, and integration so the resulting code can be traced back to the room and the commits that produced it.
+```text
+                    PRODUCT MANDATE
+                          │
+                          ▼
+                     ┌─────────┐
+                     │ PLANNER │
+                     └────┬────┘
+                          │
+                          ▼
+                  ┌──────────────┐
+                  │ TEST AUTHOR  │
+                  └──────┬───────┘
+                         │
+                         ▼
+                  ┌──────────────┐
+                  │ IMPLEMENTER  │
+                  └──────┬───────┘
+                         │
+                         ▼
+                  ┌──────────────┐
+                  │ INVESTIGATOR │
+                  └──────┬───────┘
+                         │
+                         ▼
+                    ┌──────────┐
+                    │ REVIEWER │
+                    └────┬─────┘
+                         │
+                         ▼
+                   ┌───────────┐
+                   │ INTEGRATOR│
+                   └─────┬─────┘
+                         │
+                         ▼
+                    VERIFIED BUILD
+```
+
+The important distinction is that the same agent is not responsible for deciding that its own work is correct.
+
+---
+
+## Factory seats
+
+| Seat | Responsibility |
+|---|---|
+| **Planner** | Turns the mandate into an actionable implementation plan. |
+| **Test Author** | Defines acceptance coverage and executable checks. |
+| **Implementer** | Builds the requested functionality. |
+| **Investigator** | Attacks failures, diagnoses root causes, and proposes repairs. |
+| **Reviewer** | Independently examines the implementation and evidence. |
+| **Integrator** | Coordinates the final integration and shipped state. |
+
+This separation creates an evidence trail rather than a single opaque "AI wrote the app" step.
+
+---
+
+## Product flow
+
+For a presentation, the fastest end-to-end flow is:
+
+```text
+/welcome
+   ↓
+Find a table
+   ↓
+Choose restaurant
+   ↓
+Choose date + party size
+   ↓
+Inspect availability
+   ↓
+Select table
+   ↓
+Reserve
+   ↓
+Show confirmation reference
+   ↓
+Open Your Booking
+   ↓
+Look up reservation
+```
+
+The `/welcome` page provides the public introduction, while the reservation application remains available at `/`.
+
+---
 
 ## Validation
 
-The current Stage 4 baseline was cloned into a fresh environment on the VPS and checked with the official Tablekeeper harness in isolated Docker mode.
+The current shipped milestone is **Stage 4**.
 
-The final available shipped-check run reported:
+The Stage 4 baseline was cloned into a fresh environment on the VPS and checked using the official Tablekeeper harness in isolated Docker mode.
 
-stage-1: pass
-stage-2: pass
-stage-3: pass
-stage-4: pass
+### Shipped checks
 
-highest contiguous stage: 4
-claimed stage: 4 on the shipped checks
+| Stage | Result |
+|---|---|
+| Stage 1 | ✅ Pass |
+| Stage 2 | ✅ Pass |
+| Stage 3 | ✅ Pass |
+| Stage 4 | ✅ Pass |
+
+**Highest contiguous stage:** 4  
+**Claimed shipped stage:** 4
 
 The Stage 4 Docker image also starts as a standalone HTTP service and responds successfully to:
 
+```http
 GET /health
-→ {"status":"ok"}
 
-The official harness contains additional tests that are not shipped to teams. A green shipped-check run is therefore evidence of readiness, not a guarantee against every hidden judge case.
+{"status":"ok"}
+```
 
-## Runtime and deployment
+A green shipped-check run is evidence of readiness, not a guarantee against every hidden judge case.
 
-The official hackathon deliverable is the containerized stage service. Judges build the stage Dockerfiles themselves and communicate with the service over HTTP.
+---
 
-For a public presentation/demo, this repository also includes a Vercel container deployment definition in Dockerfile.vercel. Vercel supports OCI-compatible container images as Vercel Functions and automatically detects a root Dockerfile.vercel for this deployment path.
+## Repository structure
 
-The Vercel demo is presentation infrastructure, not a replacement for the hackathon's isolated Docker validation.
+```text
+.
+├── FACTORY.md
+├── mandates/
+├── room.json
+├── stage-1/
+├── stage-2/
+├── stage-3/
+├── stage-4/
+├── Dockerfile.vercel
+├── LICENSE
+└── README.md
+```
 
-Because the current service keeps its application state in memory, the public demo should be treated as an ephemeral demonstration rather than a persistent production booking system.
+### Important files
 
-## Local assets
+- **FACTORY.md** — factory architecture and seat responsibilities.
+- **mandates/** — generic mandates supplied to the BAND seats.
+- **room.json** — BAND room export used as collaboration evidence.
+- **stage-1/** — first Tablekeeper service milestone.
+- **stage-2/** — Stage 1 carried forward and extended.
+- **stage-3/** — Stage 2 carried forward and extended.
+- **stage-4/** — current shipped Stage 4 service.
+- **Dockerfile.vercel** — public presentation deployment definition.
 
-Stage 4 bundles its restaurant photography, icons, illustrations, logo, and favicon in stage-4/assets/.
+Each completed stage contains its own Dockerfile, RUN.md, and service source.
 
-The browser serves these files locally, so the experience does not depend on a CDN or third-party runtime image host.
+---
 
-The visual assets were created specifically for Tablekeeper by the team using AI image generation and custom SVG artwork. Asset provenance and placement notes live under stage-4/assets/docs/.
+## Running Tablekeeper
 
-## Roadmap — next internal factory phases
+The official hackathon deliverable is the containerized stage service.
 
-The official challenge stages stop at Stage 4. The following are planned product iterations, not additional official challenge stages.
+Judges can build the stage Dockerfile and communicate with the service over HTTP.
+
+For example:
+
+```bash
+docker build -t tablekeeper ./stage-4
+docker run --rm -p 8000:8000 tablekeeper
+```
+
+Then verify the service:
+
+```bash
+curl http://localhost:8000/health
+```
+
+> Check the stage-specific `RUN.md` for the authoritative commands and environment required by that stage.
+
+---
+
+## Deployment
+
+The repository also contains `Dockerfile.vercel` for the public Vercel presentation deployment.
+
+**Live demo:** https://kiln-tablekeeper.vercel.app/
+
+The Vercel deployment is presentation infrastructure. It is separate from the official isolated Docker validation used for the hackathon deliverable.
+
+Because the current service keeps application state in memory, the public demo should be treated as an ephemeral demonstration rather than a persistent production reservation system.
+
+---
+
+## Evidence
+
+The factory's evidence is distributed across several artifacts:
+
+- BAND room export
+- Agent mandates
+- Stage acceptance work
+- Repository commits
+- Review and investigation output
+- Docker validation
+- Final shipped stage
+
+The intent is that the factory can demonstrate not only **what it built**, but **how it reached the result and how the result was checked**.
+
+Start with **[FACTORY.md](FACTORY.md)** to understand the factory itself.
+
+---
+
+## Roadmap
+
+The official challenge stages stop at Stage 4.
 
 ### Stage 5 — Product Polish
 
-The next product iteration will focus on the parts identified during our manual UI audit:
+Planned improvements include:
 
-- make the Welcome experience more premium and restaurant-oriented
-- improve restaurant cards and discovery
-- tighten the Find-a-table layout and reduce excessive scrolling
-- make availability easier to scan
-- give combined-table options clearer visual treatment
-- show reservation success immediately in a polished modal/dialog instead of requiring a long scroll
-- redesign the confirmation card and make the reference more prominent
-- make confirmation/reference codes shareable invitation codes
-- allow authenticated friends to join an existing reservation without changing its party size or seating
-- preserve owner-only mutation permissions
-- preserve the reference through sign-in/signup before reservation details are revealed
-- redesign Your Booking around My Reservations and Join a Shared Reservation
-- improve authenticated navigation so public Welcome navigation does not remain awkwardly prominent
-- give login/signup a stronger restaurant identity
-- add tasteful motion and micro-interactions
-- improve 375px/mobile composition
-- strengthen accessibility and reduced-motion behavior
+- premium restaurant-oriented Welcome experience
+- improved restaurant discovery
+- tighter Find-a-table layout
+- clearer availability presentation
+- improved combined-table treatment
+- polished reservation-success modal
+- redesigned confirmation card
+- shareable reservation invitation codes
+- shared reservation joining
+- owner-only mutation permissions
+- stronger authentication flow
+- My Reservations / Join Reservation experience
+- improved authenticated navigation
+- restaurant-focused login/signup
+- tasteful motion and micro-interactions
+- stronger 375px/mobile composition
+- accessibility and reduced-motion improvements
 
 ### Stage 6 — Adversarial Audit Suite
 
-After Stage 5, Kiln will deliberately attack the finished product through black-box HTTP checks.
+Kiln will deliberately attack the finished product through black-box HTTP checks, including:
 
-Planned scenarios include:
-
-- concurrent booking bursts against the same table/time
+- concurrent booking bursts
 - idempotency retry storms
 - cancel/rebook races
 - PATCH/create contention
 - timezone and daylight-saving edge cases
 - combined-table collisions
 - closure/replan consistency
-- recovery and error behavior
+- recovery and error behaviour
 
-The purpose of this suite is to document the failures we deliberately tried to induce and the evidence that the system resisted them.
+The goal is to document failures deliberately induced by the factory and the evidence that the system resisted or recovered from them.
 
-## Visual design direction
+---
 
-Tablekeeper uses a warm cream, deep green, and warm-gold palette with editorial typography and restaurant-oriented imagery.
+## Visual direction
 
-The intended direction is:
+Tablekeeper uses a warm cream, deep green, and warm-gold visual language with editorial typography and restaurant-oriented imagery.
 
 **Warm · Premium · Editorial · Modern · Trustworthy · Lively**
 
-The product should feel like a real hospitality experience rather than a generic CRUD application.
+The goal is for Tablekeeper to feel like a real hospitality product rather than a generic CRUD application.
 
-## Factory evidence
-
-The full room export, mandates, repository history, acceptance work, review messages, and independent validation together form the evidence trail for the factory.
-
-Read FACTORY.md first, then the mandates, room export, and stage folders.
+---
 
 ## License
 
-This project was created for the WeAreDevelopers × BAND Dark Factory hackathon.
+This project is licensed under the **MIT License**.
+
+See [LICENSE](LICENSE) for the full license text.
+
+Built for the **WeAreDevelopers × BAND Dark Factory Hackathon**.
